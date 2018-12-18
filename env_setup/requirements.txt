@@ -1,0 +1,4 @@
+pytest
+mock
+python-telegram-bot
+pyserial
