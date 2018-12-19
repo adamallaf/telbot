@@ -82,6 +82,15 @@ def printUserID(bot, update, args):
     bot.send_message(chat_id=update.message.chat_id, text=user_id)
 
 
+def printAvailableCmds(bot, update, args):
+    user_id = update.message.from_user.id
+    if not isAuthorized(user_id):
+        return
+    cmds = "{}".format("".join(f"{_cmd}\n" for _cmd in CMDS.keys()))
+    sys.stdout.write("{}: print available commands\n".format(user_id))
+    bot.send_message(chat_id=update.message.chat_id, text=cmds)
+
+
 CMDS = {
     'start': startCmd,
     #'arm': armCmd,
@@ -90,4 +99,5 @@ CMDS = {
     'rmuser': removeUserCmd,
     'users': getUsersCmd,
     'myid': printUserID,
+    'help': printAvailableCmds,
 }
