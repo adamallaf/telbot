@@ -2,10 +2,12 @@ import os
 import sys
 from actions import send_action, ChatAction
 from alarm import Alarm
+from logger import printLog
 from security import isAuthorized
 from security import addUser
 from security import removeUser
-from security import getUsers
+from security import getUserByID
+from security import getUsersIDs
 from shell import Shell
 
 
@@ -25,8 +27,9 @@ def armCmd(bot, update, args):
     user_id = update.message.from_user.id
     if not isAuthorized(user_id):
         return
+    user = getUserByID(user_id)
     chat_id = update.message.chat_id
-    sys.stdout.write("{}: Arming!\n".format(user_id))
+    printLog(f"{user}: Arming!")
     alarm.arm()
     bot.send_message(chat_id=chat_id, text="Armed!")
 
@@ -37,8 +40,9 @@ def disarmCmd(bot, update, args):
     user_id = update.message.from_user.id
     if not isAuthorized(user_id):
         return
+    user = getUserByID(user_id)
     chat_id = update.message.chat_id
-    sys.stdout.write("{}: Disarming!\n".format(user_id))
+    printLog(f"{user}: Disarming!")
     alarm.disarm()
     bot.send_message(chat_id=chat_id, text="Disarmed!")
 
@@ -52,12 +56,13 @@ def addUserCmd(bot, update, args):
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /adduser <id>")
         return
+    user = getUserByID(user_id)
     _arg = int(args.pop(0))
-    sys.stdout.write("{}\n".format("Adding user {} to white list...".format(_arg)))
-    msg = "User {} already exists!".format(_arg)
-    if addUser(_arg):
-        msg = "User {} added!".format(_arg)
-        sys.stdout.write("{}\n".format(msg))
+    printLog(f"{user}: Adding user {_arg}...")
+    msg = f"User {_arg} already exists!"
+    if addUser(_arg, "U"):
+        msg = f"User {_arg} added!"
+        printLog(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
 
@@ -70,12 +75,13 @@ def removeUserCmd(bot, update, args):
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /rmuser <id>")
         return
+    user = getUserByID(user_id)
     _arg = int(args.pop(0))
-    sys.stdout.write("{}\n".format("Removing user {} from white list...".format(_arg)))
-    msg = "User {} doesn\'t exists!".format(_arg)
+    printLog(f"{user}: Removing user {_arg}...")
+    msg = f"User {_arg} doesn\'t exists!"
     if removeUser(_arg):
-        msg = "User {} removed!".format(_arg)
-    sys.stdout.write("{}\n".format(msg))
+        msg = f"User {_arg} removed!"
+    printLog(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
 
@@ -85,9 +91,10 @@ def getUsersCmd(bot, update, args):
     chat_id = update.message.chat_id
     if not isAuthorized(user_id):
         return
-    sys.stdout.write("{}: get user list\n".format(user_id))
-    user_list = getUsers()
-    users = "{}".format("".join("{}\n".format(_u) for _u in user_list))
+    user = getUserByID(user_id)
+    printLog(f"{user}: get user list")
+    user_list = getUsersIDs()
+    users = "{}".format("".join(f"{_uid}\n" for _uid in user_list))
     bot.send_message(chat_id=chat_id, text=users)
 
 
@@ -95,7 +102,8 @@ def getUsersCmd(bot, update, args):
 def printUserID(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
-    sys.stdout.write("{}: what my ID\n".format(user_id))
+    user = getUserByID(user_id)
+    printLog(f"{user}: what is my ID")
     bot.send_message(chat_id=chat_id, text=user_id)
 
 
@@ -105,7 +113,8 @@ def printAvailableCmds(bot, update, args):
     chat_id = update.message.chat_id
     if not isAuthorized(user_id):
         return
-    sys.stdout.write("{}: print available commands\n".format(user_id))
+    user = getUserByID(user_id)
+    printLog(f"{user}: print available commands")
     cmds = "{}".format("".join(f"{_cmd}\n" for _cmd in CMDS.keys()))
     bot.send_message(chat_id=chat_id, text=cmds)
 
@@ -120,8 +129,9 @@ def execute(bot, update, args):
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /exec <cmd>")
         return
+    user = getUserByID(user_id)
     _args = " ".join(args)
-    sys.stdout.write("{}: execute {}\n".format(user_id, _args))
+    printLog(f"{user}: execute {_args}")
     if user_id not in shell.keys():
         shell[user_id] = Shell()
     result = shell[user_id].execute(_args)

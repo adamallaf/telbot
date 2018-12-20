@@ -1,49 +1,76 @@
+import re
+from typing import List
+from user_factory import UserFactory, UserBase
 
 
 __white_list = []
+__entry_pattern = re.compile(r"^\d{6,16} [AOU]$", re.MULTILINE)
 
 
 def __loadWhiteList():
     global __white_list
     with open('user.wlist', 'r') as f:
         users = f.read()
-    user_list = users.split("\n")
+    user_list = __entry_pattern.findall(users)
     __white_list = []
-    for _uid in user_list:
+    for _user_entry in user_list:
         try:
-            __white_list.append(int(_uid))
+            __white_list.append(UserFactory.createUser(_user_entry))
         except ValueError:
             pass
     print(__white_list)
 
 
 def isAuthorized(user_id: int) -> bool:
-    return user_id in __white_list
+    id_list = getUsersIDs()
+    return user_id in id_list
 
 
-def addUser(user_id: int) -> bool:
+def addUser(user_id: int, user_type: str) -> bool:
     if isAuthorized(user_id):
         return False
-    entry = "{}\n".format(user_id)
-    with open('user.wlist', 'a') as f:
-        f.write(entry)
-    __loadWhiteList()
-    return True
-
-
-def removeUser(user_id: int) -> bool:
-    if isAuthorized(user_id):
-        __white_list.remove(user_id)
-        with open('user.wlist', 'w') as f:
-            for _user in __white_list:
-                f.write("{}\n".format(_user))
-        __loadWhiteList()
+    entry = f"{user_id} {user_type}"
+    if __entry_pattern.findall(entry):
+        __white_list.append(UserFactory.createUser(entry))
+        with open('user.wlist', 'a') as f:
+            f.write(f"{entry}\n")
         return True
     return False
 
 
-def getUsers() -> list:
+def removeUser(user_id: int) -> bool:
+    if isAuthorized(user_id):
+        for user in __white_list:
+            if user_id == user.id:
+                __white_list.remove(user)
+        entry_pattern = re.compile(f"^{user_id} [AOU]$\n", re.MULTILINE)
+        with open('user.wlist', 'r') as f:
+            entries = f.read()
+            x = entry_pattern.findall(entries)
+            if x:
+                entries = entries.replace(x[0], '')
+        with open('user.wlist', 'w') as f:
+            for entry in entries.split("\n"):
+                if entry:
+                    f.write(f"{entry}\n")
+        return True
+    return False
+
+
+def getUserByID(user_id: int) -> UserBase:
+    if isAuthorized(user_id):
+        for user in getUsers():
+            if user_id == user.id:
+                return user
+    return UserFactory.createUser(user_id)
+
+
+def getUsers() -> List[UserBase]:
     return __white_list[:]
+
+
+def getUsersIDs() -> List[int]:
+    return [user.id for user in __white_list]
 
 
 __loadWhiteList()
