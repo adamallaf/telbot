@@ -25,7 +25,9 @@ class Shell:
         while time.time() - st < 1:
             pass
         if self.__stdout:
-            output = self.__stdout.pop(0)
+            output = ""
+            while self.__stdout:
+                output += self.__stdout.pop(0)
         return output
 
     def __addHistory(self, cmd: str):
