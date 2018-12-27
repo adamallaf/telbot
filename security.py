@@ -62,7 +62,7 @@ def getUserByID(user_id: int) -> UserBase:
         for user in getUsers():
             if user_id == user.id:
                 return user
-    return UserFactory.createUser(user_id)
+    return UserFactory.createUser(f"{user_id} x")
 
 
 def getUsers() -> List[UserBase]:
