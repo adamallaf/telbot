@@ -1,1 +1,1 @@
-(cd /home/adam/control/telbot/ && . ActivateVirtualEnv.sh && python bot.py)
+(cd /home/adam/control/telbot/ && . ActivateVirtualEnv.sh && python bot.py >> telbot.log)

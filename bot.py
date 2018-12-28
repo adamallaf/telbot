@@ -15,15 +15,18 @@ from utils import getToken
 
 
 def main():
+    printLog("Starting telegram bot...")
     if readToken():
-        sys.stdout.write("Token: {}\n".format(getToken()))
+        printLog("Token read successfully")
     updater = Updater(token=getToken())
     dispatcher = updater.dispatcher
 
     def stop():
         updater.stop()
+        printLog(f"{updater.bot.first_name} is stopped.")
 
     def stop_and_restart():
+        printLog(f"{updater.bot.first_name} is restarting...")
         updater.stop()
         os.execl(sys.executable, sys.executable, *sys.argv)
 
@@ -32,7 +35,7 @@ def main():
         user_id = update.message.from_user.id
         user = getUserByID(user_id)
         printLog(f"{user}: restart!")
-        update.message.reply_text('Bot is restarting...')
+        update.message.reply_text('Restarting...')
         Thread(target=stop_and_restart).start()
 
     @owner_only
@@ -40,7 +43,7 @@ def main():
         user_id = update.message.from_user.id
         user = getUserByID(user_id)
         printLog(f"{user}: shutdown !!!")
-        update.message.reply_text('Bot is shutting down...')
+        update.message.reply_text('Shutting down...')
         Thread(target=stop).start()
 
     dispatcher.add_handler(CommandHandler('restart', restart))
@@ -49,6 +52,7 @@ def main():
     for cmd, handler in CMDS.items():
         dispatcher.add_handler(CommandHandler(cmd, handler, pass_args=True))
 
+    printLog(f"{updater.bot.first_name} is ready!")
     updater.start_polling()
     return 0
 

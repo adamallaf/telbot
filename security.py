@@ -13,6 +13,7 @@ __entry_pattern = re.compile(r"^\d{6,16} [AOU]$", re.MULTILINE)
 
 def __loadWhiteList():
     global __white_list
+    printLog("Loading user list...")
     with open('user.wlist', 'r') as f:
         users = f.read()
     user_list = __entry_pattern.findall(users)
@@ -22,7 +23,7 @@ def __loadWhiteList():
             __white_list.append(UserFactory.createUser(_user_entry))
         except ValueError:
             pass
-    print(__white_list)
+    printLog(f"loaded! {__white_list}")
 
 
 def isAuthorized(user_id: int) -> bool:
