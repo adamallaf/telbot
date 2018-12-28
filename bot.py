@@ -7,9 +7,9 @@ from telegram.ext import Filters
 from threading import Thread
 
 from cmds import CMDS
+from logger import printLog
 from security import getUserByID
-from security import isAuthorized
-from user_base import UserPermissions
+from security import owner_only
 from utils import readToken
 from utils import getToken
 
@@ -27,21 +27,19 @@ def main():
         updater.stop()
         os.execl(sys.executable, sys.executable, *sys.argv)
 
+    @owner_only
     def restart(bot, update):
         user_id = update.message.from_user.id
-        if not isAuthorized(user_id):
-            return
-        if getUserByID(user_id).permissions != UserPermissions.OWNER:
-            return
+        user = getUserByID(user_id)
+        printLog(f"{user}: restart!")
         update.message.reply_text('Bot is restarting...')
         Thread(target=stop_and_restart).start()
 
+    @owner_only
     def shutdown(bot, update):
         user_id = update.message.from_user.id
-        if not isAuthorized(user_id):
-            return
-        if getUserByID(user_id).permissions != UserPermissions.OWNER:
-            return
+        user = getUserByID(user_id)
+        printLog(f"{user}: shutdown !!!")
         update.message.reply_text('Bot is shutting down...')
         Thread(target=stop).start()
 

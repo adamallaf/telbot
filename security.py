@@ -1,6 +1,10 @@
 import re
+from functools import wraps
+from logger import printLog
 from typing import List
-from user_factory import UserFactory, UserBase
+from user_factory import UserFactory
+from user_base import UserBase
+from user_base import UserPermissions
 
 
 __white_list = []
@@ -27,14 +31,13 @@ def isAuthorized(user_id: int) -> bool:
 
 
 def addUser(user_id: int, user_type: str) -> bool:
-    if isAuthorized(user_id):
-        return False
-    entry = f"{user_id} {user_type}"
-    if __entry_pattern.findall(entry):
-        __white_list.append(UserFactory.createUser(entry))
-        with open('user.wlist', 'a') as f:
-            f.write(f"{entry}\n")
-        return True
+    if not isAuthorized(user_id):
+        entry = f"{user_id} {user_type}"
+        if __entry_pattern.findall(entry):
+            __white_list.append(UserFactory.createUser(entry))
+            with open('user.wlist', 'a') as f:
+                f.write(f"{entry}\n")
+            return True
     return False
 
 
@@ -71,6 +74,30 @@ def getUsers() -> List[UserBase]:
 
 def getUsersIDs() -> List[int]:
     return [user.id for user in __white_list]
+
+
+def authorized(func):
+    @wraps(func)
+    def wrapped(bot, update, *args, **kwargs):
+        user_id = update.effective_user.id
+        user = getUserByID(user_id)
+        if not isAuthorized(user_id):
+            printLog(f"{user}: tried authorized command \"{update.message.text}\" !!")
+            return
+        return func(bot, update, *args, **kwargs)
+    return wrapped
+
+
+def owner_only(func):
+    @wraps(func)
+    def wrapped(bot, update, *args, **kwargs):
+        user_id = update.effective_user.id
+        user = getUserByID(user_id)
+        if user.permissions != UserPermissions.OWNER:
+            printLog(f"{user}: tried restricted command \"{update.message.text}\" !!")
+            return
+        return func(bot, update, *args, **kwargs)
+    return wrapped
 
 
 __loadWhiteList()

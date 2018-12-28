@@ -3,6 +3,8 @@ import sys
 from actions import send_action, ChatAction
 from alarm import Alarm
 from logger import printLog
+from security import authorized
+from security import owner_only
 from security import isAuthorized
 from security import addUser
 from security import removeUser
@@ -21,12 +23,11 @@ def startCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text="Hello!")
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def armCmd(bot, update, args):
     global alarm
     user_id = update.message.from_user.id
-    if not isAuthorized(user_id):
-        return
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
     printLog(f"{user}: Arming!")
@@ -34,12 +35,11 @@ def armCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text="Armed!")
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def disarmCmd(bot, update, args):
     global alarm
     user_id = update.message.from_user.id
-    if not isAuthorized(user_id):
-        return
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
     printLog(f"{user}: Disarming!")
@@ -47,12 +47,11 @@ def disarmCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text="Disarmed!")
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def addUserCmd(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
-    if not isAuthorized(user_id):
-        return
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /adduser <id>")
         return
@@ -66,12 +65,11 @@ def addUserCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text=msg)
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def removeUserCmd(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
-    if not isAuthorized(user_id):
-        return
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /rmuser <id>")
         return
@@ -85,12 +83,11 @@ def removeUserCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text=msg)
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def getUsersCmd(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
-    if not isAuthorized(user_id):
-        return
     user = getUserByID(user_id)
     printLog(f"{user}: get user list")
     user_list = getUsersIDs()
@@ -107,25 +104,23 @@ def printUserID(bot, update, args):
     bot.send_message(chat_id=chat_id, text=user_id)
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def printAvailableCmds(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
-    if not isAuthorized(user_id):
-        return
     user = getUserByID(user_id)
     printLog(f"{user}: print available commands")
     cmds = "{}".format("".join(f"{_cmd}\n" for _cmd in CMDS.keys()))
     bot.send_message(chat_id=chat_id, text=cmds)
 
 
+@authorized
 @send_action(ChatAction.TYPING)
 def execute(bot, update, args):
     global shell
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
-    if not isAuthorized(user_id):
-        return
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /exec <cmd>")
         return
