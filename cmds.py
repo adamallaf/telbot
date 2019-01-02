@@ -1,28 +1,25 @@
-import os
-import sys
 from actions import send_action, ChatAction
-from alarm import Alarm
 from logger import printLog
 from security import authorized
-from security import owner_only
-from security import isAuthorized
 from security import addUser
 from security import removeUser
 from security import getUserByID
 from security import getUsersIDs
 from shell import Shell
-
+from user_info import updateUsers
 
 alarm = None #Alarm()
 shell = {}
 
 
+@updateUsers
 @send_action(ChatAction.TYPING)
 def startCmd(bot, update, args):
     chat_id = update.message.chat_id
     bot.send_message(chat_id=chat_id, text="Hello!")
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def armCmd(bot, update, args):
@@ -35,6 +32,7 @@ def armCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text="Armed!")
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def disarmCmd(bot, update, args):
@@ -47,6 +45,7 @@ def disarmCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text="Disarmed!")
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def addUserCmd(bot, update, args):
@@ -65,6 +64,7 @@ def addUserCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text=msg)
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def removeUserCmd(bot, update, args):
@@ -83,6 +83,7 @@ def removeUserCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text=msg)
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def getUsersCmd(bot, update, args):
@@ -95,6 +96,7 @@ def getUsersCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text=users)
 
 
+@updateUsers
 @send_action(ChatAction.TYPING)
 def printUserID(bot, update, args):
     user_id = update.message.from_user.id
@@ -104,6 +106,7 @@ def printUserID(bot, update, args):
     bot.send_message(chat_id=chat_id, text=user_id)
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def printAvailableCmds(bot, update, args):
@@ -115,6 +118,7 @@ def printAvailableCmds(bot, update, args):
     bot.send_message(chat_id=chat_id, text=cmds)
 
 
+@updateUsers
 @authorized
 @send_action(ChatAction.TYPING)
 def execute(bot, update, args):
