@@ -19,11 +19,9 @@ class Shell:
 
     def execute(self, cmd: str) -> str:
         self.__addHistory(cmd)
-        self.__shell_process.stdin.write(cmd.encode('utf-8') + b'\n')
+        self.__shell_process.stdin.write(cmd.encode('utf-8') + b' 2>&1\n')
         output = "[done]"
-        st = time.time()
-        while time.time() - st < 1:
-            pass
+        time.sleep(1)
         if self.__stdout:
             output = ""
             while self.__stdout:

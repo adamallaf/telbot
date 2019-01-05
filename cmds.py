@@ -2,11 +2,15 @@ from actions import send_action, ChatAction
 from logger import printLog
 from security import authorized
 from security import addUser
+from security import owner_only
 from security import removeUser
 from security import getUserByID
 from security import getUsersIDs
 from shell import Shell
 from user_info import updateUsers
+from user_info import getAvailableUserInfoIDs
+from user_info import getUserInfo
+
 
 alarm = None #Alarm()
 shell = {}
@@ -137,6 +141,28 @@ def execute(bot, update, args):
     bot.send_message(chat_id=chat_id, text=result)
 
 
+@updateUsers
+@owner_only
+@send_action(ChatAction.TYPING)
+def userInfoCmd(bot, update, args):
+    user_id = update.message.from_user.id
+    user = getUserByID(user_id)
+    chat_id = update.message.chat_id
+    result = ""
+    if args:
+        _arg = int(args.pop(0))
+        printLog(f"{user}: user info {_args}")
+        output = getUserInfo(_arg)
+        result += f"{output['username']}({output['id']}) {'[Bot]' if output['is_bot'] else ''}\n"
+        result += f"{output['first_name']} {output['last_name']}\n"
+    else:
+        printLog(f"{user}: user info")
+        user_id_list = getAvailableUserInfoIDs()
+        for uid in user_id_list:
+            result += f"{uid}\n"
+    bot.send_message(chat_id=chat_id, text=result)
+
+
 CMDS = {
     'start': startCmd,
     #'arm': armCmd,
@@ -147,4 +173,5 @@ CMDS = {
     'myid': printUserID,
     'help': printAvailableCmds,
     'exec': execute,
+    'userinfo': userInfoCmd,
 }

@@ -31,3 +31,40 @@ def __saveUserInfo(user):
         output += f"is_bot={user.is_bot}\n"
         output += f"language_code={user.language_code}\n"
         p.write_text(output)
+
+
+def getAvailableUserInfoIDs() -> list:
+    return __users
+
+
+def getUserInfo(user_id) -> dict:
+    return __readUserInfo(user_id)
+
+
+def __readUserInfo(user_id: int) -> dict:
+    b = Path("user_accounts/")
+    b.mkdir(exist_ok=True)
+    p = b / Path(f"{user_id}")
+    result = {}
+    if p.exists():
+        result = {'id': user_id}
+        info = p.read_text()
+        for line in info.split('\n'):
+            if line:
+                k, v = line.split('=')
+                if k == "is_bot":
+                    result[k] = v == "True"
+                else:
+                    result[k] = v
+    return result
+
+
+def __loadUserInfoList():
+    b = Path("user_accounts/")
+    b.mkdir(exist_ok=True)
+    __users.clear()
+    for user_id in b.iterdir():
+        __users.append(int(user_id.name))
+
+
+__loadUserInfoList()
