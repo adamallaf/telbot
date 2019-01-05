@@ -149,15 +149,31 @@ def userInfoCmd(bot, update, args):
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
     result = ""
+    printLog(f"{user}: user info {' '.join(args)}")
     if args:
-        _arg = int(args.pop(0))
-        printLog(f"{user}: user info {_args}")
-        output = getUserInfo(_arg)
-        result += f"{output['username']}({output['id']}) {'[Bot]' if output['is_bot'] else ''}\n"
-        result += f"{output['first_name']} {output['last_name']}\n"
+        found = 0
+        counter = 0
+        if "all" in args:
+            user_id_list = getAvailableUserInfoIDs()
+            result = f"Found {len(user_id_list)} user's info:\n\n"
+        else:
+            user_id_list = [int(_arg) for _arg in args if _arg.isnumeric()]
+        for uid in user_id_list:
+            counter += 1
+            output = getUserInfo(uid)
+            if not output:
+                result += f"{uid} - not found\n"
+            else:
+                found += 1
+                result += f"{output['username']}({output['id']}) {'[Bot]' if output['is_bot'] else ''}\n"
+                result += f"{output['first_name']} {output['last_name']}\n"
+            if counter < len(user_id_list):
+                result += 20 * "-" + "\n"
+        if found < len(user_id_list):
+            result = f"Found {found}/{len(user_id_list)} user's info:\n\n" + result
     else:
-        printLog(f"{user}: user info")
         user_id_list = getAvailableUserInfoIDs()
+        result = f"{len(user_id_list)} user info available:\n\n"
         for uid in user_id_list:
             result += f"{uid}\n"
     bot.send_message(chat_id=chat_id, text=result)
