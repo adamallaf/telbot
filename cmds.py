@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from actions import send_action, ChatAction
 from logger import printLog
 from security import authorized
@@ -123,7 +125,7 @@ def printAvailableCmds(bot, update, args):
 
 
 @updateUsers
-@authorized
+@owner_only
 @send_action(ChatAction.TYPING)
 def execute(bot, update, args):
     global shell
@@ -179,6 +181,29 @@ def userInfoCmd(bot, update, args):
     bot.send_message(chat_id=chat_id, text=result)
 
 
+@updateUsers
+@owner_only
+@send_action(ChatAction.TYPING)
+def getFileCmd(bot, update, args):
+    user_id = update.message.from_user.id
+    user = getUserByID(user_id)
+    chat_id = update.message.chat_id
+    if not args:
+        bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /getfile <file_path>")
+        return
+    _arg = args.pop(0)
+    p = Path(_arg)
+    printLog(f"{user}: get file {_arg}")
+    if p.exists():
+        if p.is_file():
+            bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_DOCUMENT)
+            bot.send_document(chat_id=chat_id, document=open(_arg, 'rb'))
+        else:
+            bot.send_message(chat_id=chat_id, text=f"\"{_arg}\" is not a file!")
+    else:
+        bot.send_message(chat_id=chat_id, text=f"File \"{_arg}\" not found!")
+
+
 CMDS = {
     'start': startCmd,
     #'arm': armCmd,
@@ -190,4 +215,5 @@ CMDS = {
     'help': printAvailableCmds,
     'exec': execute,
     'userinfo': userInfoCmd,
+    'getfile': getFileCmd,
 }
