@@ -197,7 +197,7 @@ def getFileCmd(bot, update, args):
     if p.exists():
         if p.is_file():
             bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_DOCUMENT)
-            bot.send_document(chat_id=chat_id, document=open(_arg, 'rb'))
+            bot.send_document(chat_id=chat_id, document=open(_arg, 'rb'), timeout=600)
         else:
             bot.send_message(chat_id=chat_id, text=f"\"{_arg}\" is not a file!")
     else:
