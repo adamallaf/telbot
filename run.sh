@@ -1,1 +1,1 @@
-(cd /home/adam/control/telbot/ && . ActivateVirtualEnv.sh && python bot.py >> telbot.log)
+(cd $(/bin/pwd)/$(/usr/bin/dirname "$0") && . ActivateVirtualEnv.sh && python bot.py >> telbot.log)
