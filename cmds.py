@@ -1,7 +1,9 @@
+import time
 from pathlib import Path
 
 from actions import send_action, ChatAction
 from logger import printLog
+from meteo import get_meteo
 from security import authorized
 from security import addUser
 from security import owner_only
@@ -204,6 +206,32 @@ def getFileCmd(bot, update, args):
         bot.send_message(chat_id=chat_id, text=f"File \"{_arg}\" not found!")
 
 
+@updateUsers
+@owner_only
+@send_action(ChatAction.TYPING)
+def getMeteoCmd(bot, update, args):
+    user_id = update.message.from_user.id
+    user = getUserByID(user_id)
+    chat_id = update.message.chat_id
+    p = Path("./meteo.png")
+    printLog(f"{user}: get meteo")
+    if p.exists():
+        if time.time() - p.stat().st_ctime < 3600:
+            bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+            bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
+            return
+    if get_meteo():
+        printLog(" * meteo.png updated!")
+        if p.exists():
+            bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+            bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
+        else:
+            bot.send_message(chat_id=chat_id, text="Meteo image was not saved!")
+    else:
+        bot.send_message(chat_id=chat_id, text="Could not get meteo info!")
+        printLog(" X Could not download meteo.png!")
+
+
 CMDS = {
     'start': startCmd,
     #'arm': armCmd,
@@ -216,4 +244,5 @@ CMDS = {
     'exec': execute,
     'userinfo': userInfoCmd,
     'getfile': getFileCmd,
+    'meteo': getMeteoCmd,
 }
