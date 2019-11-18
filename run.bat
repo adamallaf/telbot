@@ -1,1 +1,1 @@
-@python bot.py >> telbot.log
+@python %~dp0bot.py >> %~dp0telbot.log
