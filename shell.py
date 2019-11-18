@@ -1,3 +1,4 @@
+import platform
 import time
 from subprocess import Popen, PIPE
 from threading import Thread
@@ -6,7 +7,11 @@ from typing import List
 
 class Shell:
     def __init__(self):
-        self.__shell_process = Popen(["sh"], stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=0)
+        __shell_path = "sh"
+        sys_type = platform.system()
+        if sys_type == "windows":
+            __shell_path = "C:\\Program Files\\Git\\bin\\sh.exe"
+        self.__shell_process = Popen([__shell_path], stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=0)
         self.__cmd_history = []
         self.__history_size = 100
         self.__stdout = []

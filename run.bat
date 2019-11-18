@@ -1,0 +1,1 @@
+@python bot.py >> telbot.log

@@ -1,0 +1,14 @@
+[Unit]
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/sh BOTDIR/run.sh
+WorkingDirectory=BOTDIR
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
