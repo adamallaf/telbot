@@ -3,7 +3,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/sh BOTDIR/run.sh
+ExecStart=BOTDIR/run.sh
 WorkingDirectory=BOTDIR
 StandardOutput=inherit
 StandardError=inherit

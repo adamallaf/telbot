@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PYTHON=python3.6
+PYTHON=python3.7
 SHEBANG="#!/bin/sh"
 ACTIVATION_SCRIPT="ActivateVirtualEnv.sh"
 DEACTIVATION_SCRIPT="DeactivateVirtualEnv.sh"
