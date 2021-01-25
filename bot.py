@@ -9,6 +9,7 @@ from telegram.ext import Filters
 from threading import Thread
 
 from cmds import CMDS
+from msgs import any_msg_handler
 from security import getUserByID
 from security import owner_only
 from utils import readToken
@@ -53,6 +54,8 @@ def main():
 
     for cmd, handler in CMDS.items():
         dispatcher.add_handler(CommandHandler(cmd, handler, pass_args=True))
+
+    dispatcher.add_handler(MessageHandler(Filters.all, any_msg_handler, pass_user_data=True))
 
     logger.info(f"{updater.bot.first_name} is ready!")
     updater.start_polling()
