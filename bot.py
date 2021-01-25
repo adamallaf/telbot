@@ -1,5 +1,7 @@
 import os
 import sys
+import logger
+from logging import getLogger
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler
@@ -7,7 +9,6 @@ from telegram.ext import Filters
 from threading import Thread
 
 from cmds import CMDS
-from logger import printLog
 from security import getUserByID
 from security import owner_only
 from utils import readToken
@@ -15,18 +16,19 @@ from utils import getToken
 
 
 def main():
-    printLog("Starting telegram bot...")
+    logger = getLogger("Bot")
+    logger.info("Starting telegram bot...")
     if readToken():
-        printLog("Token read successfully")
+        logger.info("Token read successfully")
     updater = Updater(token=getToken())
     dispatcher = updater.dispatcher
 
     def stop():
         updater.stop()
-        printLog(f"{updater.bot.first_name} is stopped.")
+        logger.info(f"{updater.bot.first_name} is stopped.")
 
     def stop_and_restart():
-        printLog(f"{updater.bot.first_name} is restarting...")
+        logger.info(f"{updater.bot.first_name} is restarting...")
         updater.stop()
         os.execl(sys.executable, sys.executable, *sys.argv)
 
@@ -34,7 +36,7 @@ def main():
     def restart(bot, update):
         user_id = update.message.from_user.id
         user = getUserByID(user_id)
-        printLog(f"{user}: restart!")
+        logger.info(f"{user}: restart!")
         update.message.reply_text('Restarting...')
         Thread(target=stop_and_restart).start()
 
@@ -42,7 +44,7 @@ def main():
     def shutdown(bot, update):
         user_id = update.message.from_user.id
         user = getUserByID(user_id)
-        printLog(f"{user}: shutdown !!!")
+        logger.info(f"{user}: shutdown !!!")
         update.message.reply_text('Shutting down...')
         Thread(target=stop).start()
 
@@ -52,7 +54,7 @@ def main():
     for cmd, handler in CMDS.items():
         dispatcher.add_handler(CommandHandler(cmd, handler, pass_args=True))
 
-    printLog(f"{updater.bot.first_name} is ready!")
+    logger.info(f"{updater.bot.first_name} is ready!")
     updater.start_polling()
     return 0
 

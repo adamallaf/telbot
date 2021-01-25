@@ -1,2 +1,2 @@
 #!/bin/bash
-. ActivateVirtualEnv.sh && python bot.py >> telbot.log
+. ActivateVirtualEnv.sh && python bot.py

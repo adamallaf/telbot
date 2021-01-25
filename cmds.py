@@ -1,8 +1,9 @@
 import time
 from pathlib import Path
 
+from alarm import Alarm
 from actions import send_action, ChatAction
-from logger import printLog
+from logging import getLogger
 from meteo import get_meteo
 from security import authorized
 from security import addUser
@@ -14,9 +15,10 @@ from shell import Shell
 from user_info import updateUsers
 from user_info import getAvailableUserInfoIDs
 from user_info import getUserInfo
+from cam0 import cam0_take_shot
 
 
-alarm = None #Alarm()
+#alarm = Alarm()
 shell = {}
 
 
@@ -24,6 +26,8 @@ shell = {}
 @send_action(ChatAction.TYPING)
 def startCmd(bot, update, args):
     chat_id = update.message.chat_id
+    user_id = update.message.from_user.id
+    getLogger("startCmd").info("{} called /start".format(user_id))
     bot.send_message(chat_id=chat_id, text="Hello!")
 
 
@@ -35,7 +39,7 @@ def armCmd(bot, update, args):
     user_id = update.message.from_user.id
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
-    printLog(f"{user}: Arming!")
+    getLogger("armCmd").info(f"{user}: Arming!")
     alarm.arm()
     bot.send_message(chat_id=chat_id, text="Armed!")
 
@@ -48,7 +52,7 @@ def disarmCmd(bot, update, args):
     user_id = update.message.from_user.id
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
-    printLog(f"{user}: Disarming!")
+    getLogger("disarmCmd").info(f"{user}: Disarming!")
     alarm.disarm()
     bot.send_message(chat_id=chat_id, text="Disarmed!")
 
@@ -59,16 +63,17 @@ def disarmCmd(bot, update, args):
 def addUserCmd(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
+    logger = getLogger("addUserCmd")
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /adduser <id>")
         return
     user = getUserByID(user_id)
     _arg = int(args.pop(0))
-    printLog(f"{user}: Adding user {_arg}...")
+    logger.info(f"{user}: Adding user {_arg}...")
     msg = f"User {_arg} already exists!"
     if addUser(_arg, "U"):
         msg = f"User {_arg} added!"
-        printLog(msg)
+        logger.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
 
@@ -78,16 +83,17 @@ def addUserCmd(bot, update, args):
 def removeUserCmd(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
+    logger = getLogger("removeUserCmd")
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /rmuser <id>")
         return
     user = getUserByID(user_id)
     _arg = int(args.pop(0))
-    printLog(f"{user}: Removing user {_arg}...")
+    logger.info(f"{user}: Removing user {_arg}...")
     msg = f"User {_arg} doesn\'t exists!"
     if removeUser(_arg):
         msg = f"User {_arg} removed!"
-    printLog(msg)
+    logger.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
 
@@ -98,7 +104,8 @@ def getUsersCmd(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
     user = getUserByID(user_id)
-    printLog(f"{user}: get user list")
+    logger = getLogger("getUsersCmd")
+    logger.info(f"{user}: get user list")
     user_list = getUsersIDs()
     users = "{}".format("".join(f"{_uid}\n" for _uid in user_list))
     bot.send_message(chat_id=chat_id, text=users)
@@ -110,7 +117,7 @@ def printUserID(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
     user = getUserByID(user_id)
-    printLog(f"{user}: what is my ID")
+    getLogger("printUserID").info(f"{user}: what is my ID?")
     bot.send_message(chat_id=chat_id, text=user_id)
 
 
@@ -121,7 +128,7 @@ def printAvailableCmds(bot, update, args):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
     user = getUserByID(user_id)
-    printLog(f"{user}: print available commands")
+    getLogger("printAvailableCmds").info(f"{user}: print available commands")
     cmds = "{}".format("".join(f"{_cmd}\n" for _cmd in CMDS.keys()))
     bot.send_message(chat_id=chat_id, text=cmds)
 
@@ -133,15 +140,17 @@ def execute(bot, update, args):
     global shell
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
+    logger = getLogger("execute")
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /exec <cmd>")
         return
     user = getUserByID(user_id)
     _args = " ".join(args)
-    printLog(f"{user}: execute {_args}")
+    logger.info(f"{user}: execute {_args}")
     if user_id not in shell.keys():
         shell[user_id] = Shell()
     result = shell[user_id].execute(_args)
+    logger.info(result)
     bot.send_message(chat_id=chat_id, text=result)
 
 
@@ -152,8 +161,9 @@ def userInfoCmd(bot, update, args):
     user_id = update.message.from_user.id
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
+    logger = getLogger("userInfoCmd")
     result = ""
-    printLog(f"{user}: user info {' '.join(args)}")
+    logger.info(f"{user}: user info {' '.join(args)}")
     if args:
         found = 0
         counter = 0
@@ -180,6 +190,7 @@ def userInfoCmd(bot, update, args):
         result = f"{len(user_id_list)} user info available:\n\n"
         for uid in user_id_list:
             result += f"{uid}\n"
+    logger.info("result:\n{}".format(result))
     bot.send_message(chat_id=chat_id, text=result)
 
 
@@ -190,52 +201,96 @@ def getFileCmd(bot, update, args):
     user_id = update.message.from_user.id
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
+    logger = getLogger("getFileCmd")
     if not args:
         bot.send_message(chat_id=chat_id, text="Wrong command use!\nusage: /getfile <file_path>")
         return
     _arg = args.pop(0)
     p = Path(_arg)
-    printLog(f"{user}: get file {_arg}")
+    logger.info(f"{user}: get file {_arg}")
     if p.exists():
         if p.is_file():
+            logger.info("Sending file \"{}\"...".format(_arg))
             bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_DOCUMENT)
             bot.send_document(chat_id=chat_id, document=open(_arg, 'rb'), timeout=600)
         else:
-            bot.send_message(chat_id=chat_id, text=f"\"{_arg}\" is not a file!")
+            _msg = f"\"{_arg}\" is not a file!"
+            logger.info(_msg)
+            bot.send_message(chat_id=chat_id, text=_msg)
     else:
-        bot.send_message(chat_id=chat_id, text=f"File \"{_arg}\" not found!")
+        _msg = f"File \"{_arg}\" not found!"
+        logger.info(_msg)
+        bot.send_message(chat_id=chat_id, text=_msg)
 
 
 @updateUsers
-@owner_only
+@authorized
 @send_action(ChatAction.TYPING)
 def getMeteoCmd(bot, update, args):
     user_id = update.message.from_user.id
     user = getUserByID(user_id)
     chat_id = update.message.chat_id
+    logger = getLogger("getMeteoCmd")
     p = Path("./meteo.png")
-    printLog(f"{user}: get meteo")
+    logger.info(f"{user}: get meteo")
     if p.exists():
         if time.time() - p.stat().st_ctime < 3600:
+            logger.info("sending cached meteo chart")
             bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
             bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
             return
     if get_meteo():
-        printLog(" * meteo.png updated!")
+        logger.info(f"{p.name} updated!")
         if p.exists():
+            logger.info("sending file")
             bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
             bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
         else:
-            bot.send_message(chat_id=chat_id, text="Meteo image was not saved!")
+            _msg = f"{p.name} was not saved!"
+            logger.error(_msg)
+            bot.send_message(chat_id=chat_id, text=_msg)
     else:
         bot.send_message(chat_id=chat_id, text="Could not get meteo info!")
-        printLog(" X Could not download meteo.png!")
+        logger.error(f"Could not download {p.name}!")
+
+
+@updateUsers
+@authorized
+@send_action(ChatAction.TYPING)
+def cam0ShotCmd(bot, update, args):
+    user_id = update.message.from_user.id
+    user = getUserByID(user_id)
+    chat_id = update.message.chat_id
+    logger = getLogger("cam0ShotCmd")
+    p = Path("./photo_cam0.jpg")
+    logger.info(f"{user}: cam0 shot")
+    if p.exists():
+        if time.time() - p.stat().st_ctime < 2:
+            logger.info("sending cached file")
+            bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+            bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
+            return
+    if cam0_take_shot():
+        logger.info(f"{p.name} updated!")
+        if p.exists():
+            logger.info("sending file")
+            bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+            bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
+        else:
+            _msg = f"{p.name} was not saved!"
+            logger.error(_msg)
+            bot.send_message(chat_id=chat_id, text=_msg)
+
+    else:
+        _msg = "Could not take photo on cam 0!"
+        logger.error(_msg)
+        bot.send_message(chat_id=chat_id, text=_msg)
 
 
 CMDS = {
     'start': startCmd,
-    #'arm': armCmd,
-    #'disarm': disarmCmd,
+#    'arm': armCmd,
+#    'disarm': disarmCmd,
     'adduser': addUserCmd,
     'rmuser': removeUserCmd,
     'users': getUsersCmd,
@@ -245,4 +300,5 @@ CMDS = {
     'userinfo': userInfoCmd,
     'getfile': getFileCmd,
     'meteo': getMeteoCmd,
+    'cam0_shot': cam0ShotCmd,
 }
