@@ -15,11 +15,18 @@ from shell import Shell
 from user_info import updateUsers
 from user_info import getAvailableUserInfoIDs
 from user_info import getUserInfo
-from cam0 import cam0_take_shot
+from ip_camera import IpCamera, IpCameraConfig
 
 
 #alarm = Alarm()
 shell = {}
+
+cam0_config = IpCameraConfig()
+cam0_config.name = "Cam0"
+cam0_config.address = ""
+cam0_config.username = ""
+cam0_config.password = ""
+camera_0 = IpCamera(cam0_config)
 
 
 @updateUsers
@@ -270,7 +277,7 @@ def cam0ShotCmd(bot, update, args):
             bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.UPLOAD_PHOTO)
             bot.send_photo(chat_id=chat_id, photo=p.open('rb'), timeout=600)
             return
-    if cam0_take_shot():
+    if camera_0.take_shot():
         logger.info(f"{p.name} updated!")
         if p.exists():
             logger.info("sending file")
