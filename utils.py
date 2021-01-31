@@ -1,7 +1,8 @@
-import sys
+from logging import getLogger
 
 
 __token = None
+__logger = getLogger("utils")
 
 
 def readToken():
@@ -9,9 +10,10 @@ def readToken():
     try:
         with open('token', 'r') as f:
             __token = f.readline().replace('\n', '')
+        __logger.info("Token read successfully")
         status = True
     except FileNotFoundError:
-        sys.stderr.write("Can\'t load token!")
+        __logger.error("Couldn\'t read token!")
         status = False
     return status
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-. ActivateVirtualEnv.sh && python bot.py
+. ActivateVirtualEnv.sh && python main.py

@@ -25,7 +25,7 @@ def __loadWhiteList():
             __white_list.append(UserFactory.createUser(_user_entry))
         except ValueError:
             pass
-    __logger.info(f"loaded! {__white_list}")
+    __logger.info(f"user list loaded! {__white_list}")
 
 
 def isAuthorized(user_id: int) -> bool:

@@ -3,3 +3,4 @@ mock
 python-telegram-bot
 pyserial
 requests
+pytz
